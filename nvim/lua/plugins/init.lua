@@ -1,0 +1,7 @@
+require("plugins.lsp")
+require("plugins.treesitter")
+require("plugins.telescope")
+require("plugins.nvim-dap")
+require("plugins.nvim-dap-ui")
+require("plugins.tokyonight")
+require("plugins.nordic")
