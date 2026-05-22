@@ -24,11 +24,9 @@ sudo apt-get install -y \
 	tmux \
 	ghostty \
 	vim \
-	nvim \
+	neovim \
 	python3 \
-	python-to-python3 \
 	ansible \
-	curl \
 	ca-certificates
 
 if [ ! -e $(which docker)]; then
