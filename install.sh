@@ -34,7 +34,7 @@ if [ ! -e $(which docker)]; then
     curl -fsSL https://get.docker.com | sudo bash
 fi
 
-git clone https://github.com/theb1rb/$REPO_NAME.git $CLONE_LOCATION/
+git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
 
 if [ ! -d $BACKUP_LOCATION ]; then
     echo "Creating Backup Location"
@@ -51,7 +51,7 @@ else
 fi
 
 echo "Writing NeoVim config"
-cp -R "$CLONED_REPO/nvim/" $NVIM_DIR/
+cp -R "$CLONED_REPO/nvim/" $CONFIG_DIR/
 
 if [ -f $TMUX_DEFAULT ]; then
     echo "Existing TMUX config detected! Backing up config..."
@@ -63,17 +63,17 @@ echo "Writing TMUX config"
 cp "$CLONED_REPO/tmux.conf" $TMUX_LOCATION
 ln -s $TMUX_LOCATION $TMUX_DEFAULT
 
-if [ -d $GHOSTTY_LOCATION ]; then
+if [ -d $GHOSTTY_DIR ]; then
     echo "Existing Ghostty configs detected! Backing up configs..."
-    tar -zcf "$BACKUP_LOCATION/ghostty_config_$BACKUP_DATE.tar.gz" $GHOSTTY_LOCATION/
-    rm -rf $GHOSTTY_LOCATION/
+    tar -zcf "$BACKUP_LOCATION/ghostty_config_$BACKUP_DATE.tar.gz" $GHOSTTY_DIR/
+    rm -rf $GHOSTTY_DIR/
 else
     echo "Creating Ghostty config directory"
-    mkdir $GHOSTTY_LOCATION/
+    mkdir $GHOSTTY_DIR/
 fi
 
 echo "Writing Ghostty config"
-cp -R "$CLONED_REPO/ghostty/" $GHOSTTY_LOCATION/
+cp -R "$CLONED_REPO/ghostty/" $CONFIG_DIR/
 
 echo "DONE INSTALLING DOTFILES!"
 
