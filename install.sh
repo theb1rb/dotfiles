@@ -148,7 +148,7 @@ function import_ghostty_config(){
 
 function install_docker(){
     docker_exist=$(which docker; echo $?)
-    if ( docker_exist != 0 ); then
+    if ( $docker_exist != 0 ); then
         echo "Installing Docker"
         curl -fsSL https://get.docker.com | sudo bash
         sudo groupadd docker
