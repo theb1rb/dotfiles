@@ -16,6 +16,7 @@ TMUX_DEFAULT="$HOME/.tmux.conf"
 TEMP_DIR=$(mktemp -d)
 
 # take options:
+# - choose os
 # - interactive <bool>
 # - include <list>
 
@@ -53,10 +54,10 @@ function install_neovim() {
 
     function _install_neovim() {
         git clone https://github.com/neovim/neovim.git $TEMP_DIR
-        cd $TEMP_DIR/neovim/
+        pushd $TEMP_DIR
         make CMAKE_BUILD_TYPE=RelWithDebInfo
         sudo make install
-        cd -
+        popd
     }
 
     check_neovim
@@ -67,7 +68,7 @@ function install_neovim() {
             ;;
 
         1)
-            echo "Neovim not installed. Installing..."
+            echo "Installing Neovim..."
             _install_neovim
             ;;
 
@@ -107,13 +108,27 @@ function import_tmux_config() {
     if [ -f $TMUX_DEFAULT ]; then
         echo "Existing TMUX config detected! Backing up config..."
         mv $TMUX_DEFAULT "$BACKUP_LOCATION/tmux-$BACKUP_DATE.conf.bak"
-        rm $TMUX_DEFAULT
     fi
 
     echo "Writing TMUX config"
     cp "$CLONED_REPO/tmux.conf" $TMUX_LOCATION
     ln -s $TMUX_LOCATION $TMUX_DEFAULT
 
+}
+
+function install_ghostty(){
+    sudo apt-get install ghostty -y
+
+    if ($? < 0); then
+        sudo snap install ghostty --classic
+    fi
+
+    if ($? < 0); then
+        echo "[X] Failed to install Ghostty!"
+        return 0
+    fi
+
+    # TODO: Try building from source
 }
 
 function import_ghostty_config(){
@@ -133,13 +148,29 @@ function import_ghostty_config(){
 }
 
 function install_docker(){
-    if [ ! -e $(which docker)]; then
+    docker_exist=$(which docker; echo $?)
+    if ( docker_exist != 0 ); then
         echo "Installing Docker"
         curl -fsSL https://get.docker.com | sudo bash
+        sudo groupadd docker
+        sudo usermod -aG $USER docker
+        newgrp
     fi
 }
 
+function cleanup(){
+    echo "Beginning cleanup..."
+    items=("neovim" "dotfiles")
+    for item in "$items[@]"; do
+        rm -rf /tmp/$item
+    done
+    echo "Finished cleanup"
+}
 function main() {
+
+    if [ -d $CLONED_REPO ]; then
+        rm -rf $CLONE_REPO
+    fi
 
     if [ ! -d $BACKUP_LOCATION ]; then
         echo "Creating Backup Location"
@@ -157,14 +188,14 @@ function main() {
         ansible \
         ca-certificates
 
-    sudo snap install ghostty --classic
-
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
 
+    install_ghostty
     install_docker
     install_neovim && import_neovim_configs
     import_tmux_config
     import_ghostty_config
+    cleanup
 
     echo "DONE INSTALLING DOTFILES!"
 }
