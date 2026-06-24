@@ -54,11 +54,6 @@ function install_neovim() {
     function _install_neovim() {
         git clone https://github.com/neovim/neovim.git $TEMP_DIR
         cd $TEMP_DIR/neovim/
-
-        sudo apt-get install -y \
-            make \
-            cmake
-
         make CMAKE_BUILD_TYPE=RelWithDebInfo
         sudo make install
         cd -
@@ -153,14 +148,16 @@ function main() {
 
     sudo apt-get update
     sudo apt-get install -y \
+        make \
+        cmake \
         git \
         tmux \
-        ghostty \
         vim \
-        neovim \
         python3 \
         ansible \
         ca-certificates
+
+    sudo snap install ghostty --classic
 
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
 
