@@ -16,6 +16,8 @@ TMUX_DEFAULT="$HOME/.tmux.conf"
 TEMP_DIR=$(mktemp -d)
 
 # take options:
+# - configure git
+# - generate ssh and gpg keys
 # - choose os
 # - interactive <bool>
 # - include <list>
@@ -117,17 +119,14 @@ function import_tmux_config() {
 }
 
 function install_ghostty(){
-    sudo apt-get install ghostty -y
-
-    if ($? < 0); then
-        sudo snap install ghostty --classic
-    fi
+    sudo snap install ghostty --classic
 
     if ($? < 0); then
         echo "[X] Failed to install Ghostty!"
         return 0
     fi
 
+    # TODO: Try and determine how to install things
     # TODO: Try building from source
 }
 
@@ -166,10 +165,11 @@ function cleanup(){
     done
     echo "Finished cleanup"
 }
+
 function main() {
 
     if [ -d $CLONED_REPO ]; then
-        rm -rf $CLONE_REPO
+        rm -rf $CLONED_REPO
     fi
 
     if [ ! -d $BACKUP_LOCATION ]; then
@@ -186,18 +186,19 @@ function main() {
         vim \
         python3 \
         ansible \
-        ca-certificates
+        ca-certificates \
+        pass
 
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
 
-    install_ghostty
     install_docker
+    install_ghostty && import_ghostty_config
     install_neovim && import_neovim_configs
     import_tmux_config
-    import_ghostty_config
     cleanup
 
     echo "DONE INSTALLING DOTFILES!"
+
 }
 
 main
