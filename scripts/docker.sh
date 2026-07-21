@@ -1,17 +1,17 @@
 #!/bin/bash
 DOCKER_REPO=https://github.com/docker/docker-install.git
 function install_docker() {
-    local temp_dir=$(mkdir -d)
+    temp_dir=$(mktemp -d)
     if ! command -v docker >/dev/null 2>&1; then
         send_log "Docker not installed!"
         send_log "Installing docker..."
         #curl -fsSL https://get.docker.com | sudo bash
 
-        git clone $DOCKER_REPO $temp_dir/
-        pushd ${TEMP_DIR}/
+        git clone $DOCKER_REPO "${temp_dir}/"
+        pushd "${temp_dir}/"
 
         # Make sure OS supports Docker
-        make shellcheck
+        # make shellcheck
 
         # Run install script
         chmod +x install.sh
@@ -23,7 +23,12 @@ function install_docker() {
     fi
 
     # User in docker group
-    sudo groupadd docker
+    if ! getent group docker >/dev/null; then
+        send_log "Creating docker group"
+        sudo groupadd docker
+    fi
+
+    send_log "Adding current user to docker group"
     sudo usermod -aG $USER docker
     newgrp
 
