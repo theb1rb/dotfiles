@@ -82,6 +82,9 @@ function main() {
         pass
 
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
+    pushd $CLONE_REPO
+    git switch fix-install
+    popd
 
     source ${CLONED_REPO}/scripts/log.sh
     source ${CLONED_REPO}/scripts/docker.sh
