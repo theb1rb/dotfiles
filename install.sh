@@ -82,7 +82,7 @@ function main() {
         pass
 
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
-    pushd $CLONE_REPO
+    pushd $CLONED_REPO
     git switch fix-install
     popd
 
