@@ -79,8 +79,7 @@ function main() {
         python3 \
         ansible \
         ca-certificates \
-        pass \
-        tee
+        pass
 
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
 
