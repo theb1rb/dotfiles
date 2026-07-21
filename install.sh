@@ -22,142 +22,27 @@ TEMP_DIR=$(mktemp -d)
 # - interactive <bool>
 # - include <list>
 
-function uninstall_neovim() {
-
-    if $(snap list | grep -E '^neovim'); then
-        sudo snap remove neovim
-    fi
-
-    if $(apt list --installed | grep -E '^neovim'); then
-        sudo apt purge --autoremove neovim
-    fi
-
+function options() {
+    echo "what are we installing?"
+    echo "full or just packages?"
 }
 
-function check_neovim() {
-    if ! command -v nvim >/dev/null 2>&1; then
-        echo "Neovim not installed"
+function check_os() {
+
+    # TODO: more compatible for different OS's
+    echo "make sure running on ubuntu"
+    if [[ -r /etc/os-release ]]; then
+        source /etc/os-release
+        if [[ $ID == "ubuntu" ]]; then
+            return 0
+        fi
+    else
         return 1
     fi
 
-    version=$(nvim --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-    IFS=. read -r major minor patch <<< "$version"
-
-    if (( major > 0 || (major == 0 && minor >= 11) )); then
-        echo "Neovim already satisfied"
-        return 0
-    fi
-
-    echo "Neovim version too old (need >= v0.11.0)"
-    return 2
 }
 
-function install_neovim() {
-
-    function _install_neovim() {
-        git clone https://github.com/neovim/neovim.git $TEMP_DIR
-        pushd $TEMP_DIR
-        make CMAKE_BUILD_TYPE=RelWithDebInfo
-        sudo make install
-        popd
-    }
-
-    check_neovim
-    case $? in
-        0)
-            echo "Neovim >= v0.11.0 already installed."
-            return 0
-            ;;
-
-        1)
-            echo "Installing Neovim..."
-            _install_neovim
-            ;;
-
-        2)
-            echo "Neovim version too old. Reinstalling..."
-            uninstall_neovim
-            _install_neovim
-            ;;
-
-        *)
-            echo "Unexpected status from check_neovim."
-            return 1
-            ;;
-    esac
-
-}
-
-function import_neovim_configs() {
-
-    if [ -d $NVIM_DIR ]; then
-        echo "Existing NeoVim configs detected! Backing up configs..."
-        tar -zcf "$BACKUP_LOCATION/nvim_backup_$BACKUP_DATE.tar.gz" $NVIM_DIR/
-        rm -rf $NVIM_DIR/
-    else
-        echo "Creating NeoVim config directory"
-        mkdir $NVIM_DIR/
-    fi
-
-    echo "Writing NeoVim config"
-    cp -R "$CLONED_REPO/nvim/" $CONFIG_DIR/
-
-
-}
-
-function import_tmux_config() {
-
-    if [ -f $TMUX_DEFAULT ]; then
-        echo "Existing TMUX config detected! Backing up config..."
-        mv $TMUX_DEFAULT "$BACKUP_LOCATION/tmux-$BACKUP_DATE.conf.bak"
-    fi
-
-    echo "Writing TMUX config"
-    cp "$CLONED_REPO/tmux.conf" $TMUX_LOCATION
-    ln -s $TMUX_LOCATION $TMUX_DEFAULT
-
-}
-
-function install_ghostty(){
-    sudo snap install ghostty --classic
-
-    if ($? < 0); then
-        echo "[X] Failed to install Ghostty!"
-        return 0
-    fi
-
-    # TODO: Try and determine how to install things
-    # TODO: Try building from source
-}
-
-function import_ghostty_config(){
-
-    if [ -d $GHOSTTY_DIR ]; then
-        echo "Existing Ghostty configs detected! Backing up configs..."
-        tar -zcf "$BACKUP_LOCATION/ghostty_config_$BACKUP_DATE.tar.gz" $GHOSTTY_DIR/
-        rm -rf $GHOSTTY_DIR/
-    else
-        echo "Creating Ghostty config directory"
-        mkdir $GHOSTTY_DIR/
-    fi
-
-    echo "Writing Ghostty config"
-    cp -R "$CLONED_REPO/ghostty/" $CONFIG_DIR/
-
-}
-
-function install_docker(){
-    docker_exist=$(which docker; echo $?)
-    if ( $docker_exist != 0 ); then
-        echo "Installing Docker"
-        curl -fsSL https://get.docker.com | sudo bash
-        sudo groupadd docker
-        sudo usermod -aG $USER docker
-        newgrp
-    fi
-}
-
-function cleanup(){
+function cleanup() {
     echo "Beginning cleanup..."
     items=("neovim" "dotfiles")
     for item in "$items[@]"; do
@@ -167,6 +52,11 @@ function cleanup(){
 }
 
 function main() {
+
+    if ! check_os; then
+        echo "This script only supports Ubuntu" >&2
+        exit 1
+    fi
 
     if [ -d $CLONED_REPO ]; then
         rm -rf $CLONED_REPO
@@ -182,14 +72,26 @@ function main() {
         make \
         cmake \
         git \
+        gh \
+        glab \
         tmux \
         vim \
         python3 \
         ansible \
         ca-certificates \
-        pass
+        pass \
+        tee
 
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
+
+    source ${CLONED_REPO}/scripts/log.sh
+    source ${CLONED_REPO}/scripts/docker.sh
+    source ${CLONED_REPO}/scripts/ghostty.sh
+    source ${CLONED_REPO}/scripts/nvim.sh
+    source ${CLONED_REPO}/scripts/tmux.sh
+
+    source ${CLONED_REPO}/scripts/crypto.sh
+    source ${CLONED_REPO}/scripts/git.sh
 
     install_docker
     install_ghostty && import_ghostty_config
@@ -197,7 +99,7 @@ function main() {
     import_tmux_config
     cleanup
 
-    echo "DONE INSTALLING DOTFILES!"
+    send_log "DONE INSTALLING DOTFILES!"
 
 }
 
