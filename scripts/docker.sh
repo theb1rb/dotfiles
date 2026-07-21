@@ -29,13 +29,12 @@ function install_docker() {
     fi
 
     send_log "Adding current user to docker group"
-    sudo usermod -aG $USER docker
-    newgrp
+    sudo usermod -aG docker $USER
 
     # Verify install
     docker --version
 
-    if ! docker run --rm hello-world; then
+    if ! sudo docker run --rm hello-world; then
         send_log "ERROR: Could not get docker to run the hello world container"
     else
         send_log "Docker install complete!"
