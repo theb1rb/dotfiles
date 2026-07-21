@@ -10,8 +10,7 @@ GHOSTTY_DIR="$CONFIG_DIR/ghostty"
 GIT_USERNAME="theb1rb"
 NVIM_DIR="$CONFIG_DIR/nvim"
 REPO_NAME="dotfiles"
-CLONED_REPO="$CLONE_LOCATION/$REPO_NAME"
-TMUX_LOCATION="$CONFIG_DIR/tmux.conf"
+CLONED_REPO="$CLONE_LOCATION/$REPO_NAME" TMUX_LOCATION="$CONFIG_DIR/tmux.conf"
 TMUX_DEFAULT="$HOME/.tmux.conf"
 TEMP_DIR=$(mktemp -d)
 
@@ -82,9 +81,6 @@ function main() {
         pass
 
     git clone https://github.com/theb1rb/$REPO_NAME.git $CLONED_REPO/
-    pushd $CLONED_REPO
-    git switch fix-install
-    popd
 
     source ${CLONED_REPO}/scripts/log.sh
     source ${CLONED_REPO}/scripts/docker.sh
