@@ -1,13 +1,14 @@
 #!/bin/bash
 DOCKER_REPO=https://github.com/docker/docker-install.git
 function install_docker() {
+    local temp_dir=$(mkdir -d)
     if ! command -v docker >/dev/null 2>&1; then
         send_log "Docker not installed!"
         send_log "Installing docker..."
         #curl -fsSL https://get.docker.com | sudo bash
 
-        git clone $DOCKER_REPO $TEMP_DIR
-        pushd ${TEMP_DIR}/docker-install/
+        git clone $DOCKER_REPO $temp_dir/
+        pushd ${TEMP_DIR}/
 
         # Make sure OS supports Docker
         make shellcheck
